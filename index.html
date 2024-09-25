@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="Heading"><h3>Developed By ARSHAD MOHAMMAD</h3>
+        
+        <div class="MyDiv"><img src="info-image.png" class="infoimage"><div class="hover-box" id="hoverBox">
+            <h3>
+                PM accelerator
+            </h3>
+            <p>Hiring and getting hired for product management roles is hard. In the short timeframe of an interview, it is difficult to precisely assess and display the necessary, complex skills.
+                Product Managers play key roles in a company. Hiring for those positions shouldn‘t be a guessing game.
+                
+                It is our vision, to make it simple and beneficial for Product Managers to accurately display their skills and empower hiring companies to choose the right Product Manager every time.
+            </p>
+            <br>
+            <p>
+                <h4>Sign up now:</h4><a href src="https://pm-accelerator.webflow.io/">https://pm-accelerator.webflow.io/</a></p>
+            <br>
+            <h4>Website</h4>
+            <a href src="https://pm-accelerator.webflow.io/">https://pm-accelerator.webflow.io/</a><br>
+            <h4>Industry</h4>
+            <p>E-learning providers</p><br>
+            <h4>Company size</h4>
+            <br>
+            <p>2-10 employees</p>
+        </div>
+    </div>
+</div>
+       
+    <div class="card">
+        <div class="search">
+            <input type="text" placeholder="Enter City Name" spellcheck="false">
+            <button><img src="search.png" alt="Search Icon"></button>
+        </div>
+        <div class="error">
+            <p>Invalid City Name</p>
+        </div>
+        <div class="weather">
+            <img src="rain.png" alt="Icon" class="weather-icon">
+            <h1 class="temp">22°C</h1>
+            <h2 class="city">New York</h2>
+            <div class="details">
+                <div class="col">
+                    <img src="humidity.png" alt="">
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="wind.png" alt="">
+                    <div>
+                        <p class="wind">15 Km/H</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="forecast">
+            <h2>5-Day Forecast</h2>
+            <div class="forecast-container"></div>
+        </div>
+    </div>
+    
+    <script>
+        
+        const apiKey = "6df3e8783d40ff9d3783d2290005d7c3";
+        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+        const forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?units=metric&q=";
+        const searchBox = document.querySelector(".search input");
+        const searchBtn = document.querySelector(".search button");
+        const WeatherIcon = document.querySelector(".weather-icon");
+
+        async function checkWeather(city) {
+            const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
+
+            if (response.status == 404) {
+                document.querySelector(".error").style.display = "block";
+                document.querySelector(".weather").style.display = "none";
+                document.querySelector(".forecast").style.display = "none";
+            } else {
+                const data = await response.json();
+                displayCurrentWeather(data);
+                getForecast(city);
+            }
+        }
+
+        function displayCurrentWeather(data) {
+            document.querySelector(".city").innerHTML = data.name;
+            document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°C";
+            document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+            document.querySelector(".wind").innerHTML = data.wind.speed + " Km/h";
+
+            if (data.weather[0].main == "Clouds") {
+                WeatherIcon.src = "clouds.png";
+            } else if (data.weather[0].main == "Clear") {
+                WeatherIcon.src = "clear.png";
+            } else if (data.weather[0].main == "Rain") {
+                WeatherIcon.src = "rain.png";
+            } else if (data.weather[0].main == "Drizzle") {
+                WeatherIcon.src = "drizzle.png";
+            } else if (data.weather[0].main == "Mist") {
+                WeatherIcon.src = "Mist.png";
+            }
+
+            document.querySelector(".weather").style.display = "block";
+            document.querySelector(".error").style.display = "none";
+            document.querySelector(".forecast").style.display = "block";
+        }
+
+        async function getForecast(city) {
+            const response = await fetch(forecastUrl + city + `&appid=${apiKey}`);
+            const data = await response.json();
+
+            if (data.cod !== "200") {
+                document.querySelector(".forecast-container").innerHTML = "<p>Error fetching forecast</p>";
+                return;
+            }
+
+            const forecastContainer = document.querySelector(".forecast-container");
+            forecastContainer.innerHTML = ""; // Clear previous forecasts
+
+            // Iterate through the forecast data for 5 days (every 8th entry represents a new day)
+            for (let i = 0; i < data.list.length; i += 8) {
+                const forecast = data.list[i];
+                const date = new Date(forecast.dt * 1000).toLocaleDateString();
+                const temp = Math.round(forecast.main.temp) + "°C";
+                const weatherCondition = forecast.weather[0].main;
+
+                const forecastCard = document.createElement("div");
+                forecastCard.className = "forecast-card";
+                forecastCard.innerHTML = `
+                    <h3>${date}</h3>
+                    <p>${temp}</p>
+                    <img src="${weatherCondition.toLowerCase()}.png" alt="${weatherCondition}">
+                `;
+
+                forecastContainer.appendChild(forecastCard);
+            }
+        }
+        const hoverBox = document.getElementById("hoverBox");
+const searchInput = document.querySelector(".infoimage");
+
+// Show hover box on mouse enter
+searchInput.addEventListener("mouseenter", () => {
+    hoverBox.style.display = "block";
+});
+
+// Hide hover box on mouse leave
+searchInput.addEventListener("mouseleave", () => {
+    hoverBox.style.display = "none";
+});
+
+
+        searchBtn.addEventListener("click", () => {
+            checkWeather(searchBox.value);
+        });
+    </script>
+</body>
+</html>
